@@ -5,10 +5,16 @@ import {
   VersionedTransaction,
 } from "@solana/web3.js";
 
-export const MAINNET_RPC = "https://api.mainnet-beta.solana.com";
+export const DEFAULT_MAINNET_RPC = "https://api.mainnet-beta.solana.com";
+
+function getRpcUrl() {
+  // Vercel/browser-origin traffic to the public Solana RPC can return 403.
+  // Prefer a dedicated RPC (Helius/QuickNode/Alchemy/Ankr/etc) via env.
+  return process.env.NEXT_PUBLIC_SOLANA_RPC_URL || DEFAULT_MAINNET_RPC;
+}
 
 export function getConnection() {
-  return new Connection(MAINNET_RPC, {
+  return new Connection(getRpcUrl(), {
     commitment: "confirmed",
     confirmTransactionInitialTimeout: 60_000,
   });
