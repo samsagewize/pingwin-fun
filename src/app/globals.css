@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+/*
+  PINGWIN.FUN theme tokens
+  Tailwind v4 uses CSS-first configuration via @theme.
+*/
+
+:root {
+  /* Core palette */
+  --bg: #070a12; /* deep navy/black */
+  --surface: #0c1220;
+  --surface-2: #101a2d;
+  --text: #eaf0ff;
+  --muted: #93a4b8;
+
+  --cyan: #22d3ee;
+  --lime: #b6ff3b;
+  --pink: #ff2bd6;
+  --red: #ef4444;
+
+  --border: rgba(255, 255, 255, 0.08);
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+
+  --color-cyan: var(--cyan);
+  --color-lime: var(--lime);
+  --color-pink: var(--pink);
+  --color-danger: var(--red);
+
+  --color-border: var(--border);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* A little casino glow without going full MySpace */
+.glow {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 0 40px rgba(34, 211, 238, 0.08),
+    0 0 80px rgba(255, 43, 214, 0.06);
+}
