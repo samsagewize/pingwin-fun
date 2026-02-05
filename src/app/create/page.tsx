@@ -50,13 +50,22 @@ export default function CreatePage() {
         return res;
       };
 
-      setStatus("Creating SPL mint + ATA + minting supply… approve in wallet");
+      const treasury = new PublicKey(
+        "B59jW3oFwJzC2wu8T4EgwNmk6icGeMC4uQ7KgNKFKaTg",
+      );
+      const createFeeLamports = 1_000_000n; // 0.001 SOL
+
+      setStatus(
+        `Creating SPL mint + ATA + minting supply… (fee: ${Number(createFeeLamports) / 1e9} SOL) approve in wallet`,
+      );
 
       const out = await launchMintToConnectedWallet({
         payer,
         signAndSendTransaction,
         decimals: token.decimals,
         supplyUi: token.supplyUi,
+        treasury,
+        createFeeLamports,
       });
 
       setMint(out.mint);
@@ -142,8 +151,8 @@ export default function CreatePage() {
           )}
 
           <div className="text-xs text-[color:var(--muted)]">
-            Treasury wallet (for later program-enforced fees):{" "}
-            <span className="text-[color:var(--text)]">B59jW3oFwJzC2wu8T4EgwNmk6icGeMC4uQ7KgNKFKaTg</span>
+            Launch fee: <span className="text-[color:var(--text)]">0.001 SOL</span> •
+            Treasury: <span className="text-[color:var(--text)]">B59jW3oFwJzC2wu8T4EgwNmk6icGeMC4uQ7KgNKFKaTg</span>
           </div>
         </div>
       </div>

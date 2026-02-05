@@ -39,8 +39,17 @@ export async function launchMintToConnectedWallet(args: {
   signAndSendTransaction: (tx: Transaction) => Promise<{ signature: string }>;
   decimals: number;
   supplyUi: number;
+  treasury?: PublicKey;
+  createFeeLamports?: bigint;
 }): Promise<LaunchResult> {
-  const { payer, signAndSendTransaction, decimals, supplyUi } = args;
+  const {
+    payer,
+    signAndSendTransaction,
+    decimals,
+    supplyUi,
+    treasury,
+    createFeeLamports,
+  } = args;
   const connection = getConnection();
 
   const mintKeypair = Keypair.generate();
@@ -94,7 +103,23 @@ export async function launchMintToConnectedWallet(args: {
   const tx = new Transaction({
     feePayer: payer,
     recentBlockhash: blockhash,
-  }).add(createMintAccountIx, initMintIx, createAtaIx, mintToIx);
+  });
+
+  if (treasury && createFeeLamports && createFeeLamports > 0n) {
+    // If payer == treasury, this is effectively a no-op transfer (but still costs a tx fee).
+    // We skip to avoid unnecessary instruction noise.
+    if (!payer.equals(treasury)) {
+      tx.add(
+        SystemProgram.transfer({
+          fromPubkey: payer,
+          toPubkey: treasury,
+          lamports: Number(createFeeLamports),
+        }),
+      );
+    }
+  }
+
+  tx.add(createMintAccountIx, initMintIx, createAtaIx, mintToIx);
 
   // mint account must sign (it is being created)
   tx.partialSign(mintKeypair);
