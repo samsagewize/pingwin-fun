@@ -1,9 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { PublicKey, Transaction } from "@solana/web3.js";
+import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
 import { getConnection, getProvider } from "@/lib/solana";
-import { defaultTestToken, launchMintToConnectedWallet } from "@/lib/tokenLaunch";
+import { defaultTestToken } from "@/lib/tokenLaunch";
+import { getCluster, ixCreateLaunch } from "@/lib/pingwinProgram";
 
 export default function CreatePage() {
   const token = useMemo(() => defaultTestToken(), []);
@@ -50,26 +51,45 @@ export default function CreatePage() {
         return res;
       };
 
-      const treasury = new PublicKey(
-        "B59jW3oFwJzC2wu8T4EgwNmk6icGeMC4uQ7KgNKFKaTg",
+      const cluster = getCluster();
+      const devWallet = new PublicKey(
+        process.env.NEXT_PUBLIC_PINGWIN_DEV_WALLET || payer.toBase58(),
       );
-      const createFeeLamports = 1_000_000n; // 0.001 SOL
+
+      // 1B tokens @ 6 decimals
+      const initialTokenReserve = 1_000_000_000_000_000n;
+      const feeBps = 100; // 1%
+
+      const mintKeypair = Keypair.generate();
 
       setStatus(
-        `Creating SPL mint + ATA + minting supply… (fee: ${Number(createFeeLamports) / 1e9} SOL) approve in wallet`,
+        `Creating launch (cluster=${cluster})… approve in wallet`,
       );
 
-      const out = await launchMintToConnectedWallet({
-        payer,
-        signAndSendTransaction,
-        decimals: token.decimals,
-        supplyUi: token.supplyUi,
-        treasury,
-        createFeeLamports,
+      const { ix } = ixCreateLaunch({
+        creator: payer,
+        devWallet,
+        mint: mintKeypair.publicKey,
+        feeBps,
+        initialTokenReserve,
       });
 
-      setMint(out.mint);
-      setSig(out.signature);
+      const { blockhash } =
+        await connection.getLatestBlockhash("confirmed");
+
+      const tx = new Transaction({
+        feePayer: payer,
+        recentBlockhash: blockhash,
+      });
+      tx.add(ix);
+
+      // mint must sign (it's created via init)
+      tx.partialSign(mintKeypair);
+
+      const { signature } = await signAndSendTransaction(tx);
+
+      setMint(mintKeypair.publicKey.toBase58());
+      setSig(signature);
       setStatus("Done");
     } finally {
       setLoading(false);
@@ -81,8 +101,7 @@ export default function CreatePage() {
       <div className="mt-10">
         <h1 className="text-3xl font-semibold tracking-tight">Launch a token</h1>
         <p className="mt-2 text-sm text-[color:var(--muted)]">
-          Mainnet test: creates a plain SPL token mint and mints the initial
-          supply to your connected wallet.
+          Creates a bonding-curve launch: program-owned mint + vault, with buys/sells against a constant-product curve.
         </p>
       </div>
 
@@ -109,7 +128,7 @@ export default function CreatePage() {
             disabled={loading}
             className="inline-flex h-12 items-center justify-center rounded-2xl bg-[color:var(--lime)] text-sm font-semibold text-[color:var(--bg)] hover:brightness-110 disabled:opacity-60"
           >
-            {loading ? "Launching…" : "Launch test token on mainnet"}
+            {loading ? "Launching…" : "Create bonding-curve launch"}
           </button>
 
           {status && (
@@ -151,8 +170,8 @@ export default function CreatePage() {
           )}
 
           <div className="text-xs text-[color:var(--muted)]">
-            Launch fee: <span className="text-[color:var(--text)]">0.001 SOL</span> •
-            Treasury: <span className="text-[color:var(--text)]">B59jW3oFwJzC2wu8T4EgwNmk6icGeMC4uQ7KgNKFKaTg</span>
+            Fee bps is set client-side for MVP. Dev wallet is taken from
+            <span className="text-[color:var(--text)]"> NEXT_PUBLIC_PINGWIN_DEV_WALLET</span> (defaults to your wallet).
           </div>
         </div>
       </div>

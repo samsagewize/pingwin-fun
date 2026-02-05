@@ -5,6 +5,7 @@ import {
   getOrCreateAssociatedTokenAccount,
   mintTo,
 } from '@solana/spl-token';
+import { createTokenMetadataImmutable } from '@/lib/tokenMetadata';
 
 export function makeConnection(rpcUrl: string) {
   return new Connection(rpcUrl, { commitment: 'confirmed' });
@@ -80,6 +81,11 @@ export async function createSplMintAndMintToOwner(params: {
   decimals: number;
   supply: bigint;
   owner?: string; // defaults to payer
+  metadata?: {
+    name: string;
+    symbol: string;
+    uri: string;
+  };
 }) {
   const connection = makeConnection(params.rpcUrl);
   const payer = keypairFromSecretKeyJson(params.secretKeyJson);
@@ -110,10 +116,23 @@ export async function createSplMintAndMintToOwner(params: {
     params.supply
   );
 
+  let metadata: { metadataPda: string; signature: string } | undefined;
+  if (params.metadata) {
+    metadata = await createTokenMetadataImmutable({
+      connection,
+      payer,
+      mint,
+      name: params.metadata.name,
+      symbol: params.metadata.symbol,
+      uri: params.metadata.uri,
+    });
+  }
+
   return {
     mint: mint.toBase58(),
     owner: owner.toBase58(),
     ata: ata.address.toBase58(),
     signature,
+    metadata,
   };
 }

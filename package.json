@@ -6,9 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:anchor": "echo \"Run Anchor tests from ./anchor\""
   },
   "dependencies": {
+    "@coral-xyz/anchor": "^0.30.1",
+    "@metaplex-foundation/mpl-token-metadata": "^2.13.0",
     "@solana/client": "^1.7.0",
     "@solana/kit": "^5.5.1",
     "@solana/react-hooks": "^1.4.1",
@@ -16,6 +19,7 @@
     "@solana/wallet-standard-util": "^1.1.2",
     "@solana/wallet-standard-wallet-adapter-react": "^1.1.4",
     "@solana/web3.js": "^1.98.4",
+    "buffer": "^6.0.3",
     "next": "16.1.6",
     "react": "19.2.3",
     "react-dom": "19.2.3"

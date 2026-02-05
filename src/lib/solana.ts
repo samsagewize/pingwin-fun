@@ -6,11 +6,19 @@ import {
 } from "@solana/web3.js";
 
 export const DEFAULT_MAINNET_RPC = "https://api.mainnet-beta.solana.com";
+export const DEFAULT_DEVNET_RPC = "https://api.devnet.solana.com";
+export const DEFAULT_LOCALNET_RPC = "http://127.0.0.1:8899";
 
 function getRpcUrl() {
   // Vercel/browser-origin traffic to the public Solana RPC can return 403.
   // Prefer a dedicated RPC (Helius/QuickNode/Alchemy/Ankr/etc) via env.
-  return process.env.NEXT_PUBLIC_SOLANA_RPC_URL || DEFAULT_MAINNET_RPC;
+  const explicit = process.env.NEXT_PUBLIC_SOLANA_RPC_URL;
+  if (explicit) return explicit;
+
+  const cluster = (process.env.NEXT_PUBLIC_SOLANA_CLUSTER || "mainnet").toLowerCase();
+  if (cluster === "devnet") return DEFAULT_DEVNET_RPC;
+  if (cluster === "localnet") return DEFAULT_LOCALNET_RPC;
+  return DEFAULT_MAINNET_RPC;
 }
 
 export function getConnection() {

@@ -18,7 +18,7 @@ Open http://localhost:3000
 ## Notes
 - Current pages: `/`, `/explore`, `/create`, `/profile`, `/launch/[id]`
 - Wallet connect: Wallet Standard (Phantom / Solflare)
-- Platform fee treasury (mainnet): `B59jW3oFwJzC2wu8T4EgwNmk6icGeMC4uQ7KgNKFKaTg`
+- Bonding curve is implemented as an **Anchor program** in `./anchor`.
 
 ## RPC (important)
 If you see `403 {"message":"Access forbidden"}` from JSON-RPC, your environment is being blocked by the public Solana RPC.
@@ -31,16 +31,72 @@ Examples:
 - Helius: `https://mainnet.helius-rpc.com/?api-key=...`
 - Ankr: `https://rpc.ankr.com/solana`
 
-## Admin mint (server wallet)
-
-`/create` calls a server endpoint that creates an SPL mint on **mainnet-beta** using an admin keypair from env.
+## Cluster / Program config
 
 Create `.env.local`:
 
 ```bash
-# optional
-SOLANA_RPC_URL=https://api.mainnet-beta.solana.com
+# one of: localnet | devnet | mainnet
+NEXT_PUBLIC_SOLANA_CLUSTER=devnet
 
-# required: JSON array for Keypair.secretKey
-SOLANA_ADMIN_SECRET_KEY=[1,2,3,...]
+# optional override (otherwise defaults by cluster)
+# NEXT_PUBLIC_SOLANA_RPC_URL=...
+
+# Program IDs per cluster
+NEXT_PUBLIC_PINGWIN_PROGRAM_ID_LOCALNET=...
+NEXT_PUBLIC_PINGWIN_PROGRAM_ID_DEVNET=...
+NEXT_PUBLIC_PINGWIN_PROGRAM_ID_MAINNET=...
+
+# Where fees go (defaults to your connected wallet if unset)
+NEXT_PUBLIC_PINGWIN_DEV_WALLET=...
 ```
+
+## Anchor program (localnet/devnet)
+
+Prereqs:
+- `solana` CLI
+- `anchor` CLI
+
+### Localnet
+
+```bash
+# 1) terminal A
+solana-test-validator
+
+# 2) terminal B
+cd anchor
+anchor keys sync
+anchor build
+anchor deploy
+```
+
+After deploy:
+- Copy the deployed program id into `NEXT_PUBLIC_PINGWIN_PROGRAM_ID_LOCALNET`
+- Also update `declare_id!()` in `anchor/programs/pingwin_fun/src/lib.rs` (or re-run `anchor keys sync` and rebuild).
+
+Run UI:
+
+```bash
+npm run dev
+```
+
+Open:
+- http://localhost:3000/create → create a launch
+- then visit /launch/<mint>
+
+### Devnet
+
+```bash
+solana config set --url https://api.devnet.solana.com
+cd anchor
+anchor keys sync
+anchor build
+anchor deploy --provider.cluster devnet
+```
+
+Set `NEXT_PUBLIC_SOLANA_CLUSTER=devnet` and `NEXT_PUBLIC_PINGWIN_PROGRAM_ID_DEVNET`.
+
+## Safety notes
+- Fee bps capped at 10% on-chain
+- Slippage parameters are supported by the program (`min_amount_out`), but the UI currently sets them to 0 for MVP.
+- Launch PDA retains rent-exempt lamports during sells.

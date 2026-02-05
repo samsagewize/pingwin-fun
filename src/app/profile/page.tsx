@@ -2,11 +2,16 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { getConnection, getProvider } from "@/lib/solana";
+import { fetchTokenMetadata } from "@/lib/tokenMetadata";
 
 type TokenRow = {
   mint: string;
   amount: string;
   decimals: number;
+  name?: string;
+  symbol?: string;
+  image?: string;
+  uri?: string;
 };
 
 export default function ProfilePage() {
@@ -63,7 +68,36 @@ export default function ProfilePage() {
           .filter((r): r is TokenRow => Boolean(r))
           .filter((r) => r.amount !== "0" && r.amount !== "0.0");
 
-        setTokens(rows);
+        // Resolve Metaplex metadata for each mint (best-effort)
+        const withMeta = await Promise.all(
+          rows.map(async (r) => {
+            const md = await fetchTokenMetadata({ connection, mint: r.mint });
+            if (!md) return r;
+
+            let image: string | undefined;
+            try {
+              if (md.uri) {
+                const resp = await fetch(md.uri);
+                if (resp.ok) {
+                  const j = (await resp.json()) as { image?: string };
+                  image = j.image;
+                }
+              }
+            } catch {
+              // ignore JSON fetch errors (CORS/404/etc)
+            }
+
+            return {
+              ...r,
+              name: md.name,
+              symbol: md.symbol,
+              uri: md.uri,
+              image,
+            };
+          }),
+        );
+
+        setTokens(withMeta);
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : String(e);
         setErr(msg);
@@ -123,12 +157,42 @@ export default function ProfilePage() {
             tokens.map((t) => (
               <div
                 key={t.mint}
-                className="flex flex-col gap-1 rounded-2xl border border-[color:var(--border)] bg-[color:var(--bg)]/30 p-4"
+                className="flex flex-col gap-2 rounded-2xl border border-[color:var(--border)] bg-[color:var(--bg)]/30 p-4"
               >
-                <div className="font-mono text-xs text-[color:var(--muted)]">{t.mint}</div>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-semibold">
+                      {t.name ?? "Unknown token"}
+                      {t.symbol ? (
+                        <span className="ml-2 text-xs text-[color:var(--muted)]">({t.symbol})</span>
+                      ) : null}
+                    </div>
+                    <div className="mt-1 font-mono text-xs text-[color:var(--muted)]">{t.mint}</div>
+                  </div>
+                  {t.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={t.image}
+                      alt={t.symbol ?? t.name ?? t.mint}
+                      className="h-12 w-12 rounded-xl border border-[color:var(--border)] bg-[color:var(--bg)]/40 object-cover"
+                    />
+                  ) : null}
+                </div>
+
                 <div className="text-sm">
                   <span className="text-[color:var(--muted)]">Amount:</span> {t.amount}
                 </div>
+
+                {t.uri ? (
+                  <a
+                    className="text-xs text-[color:var(--cyan)] underline decoration-transparent hover:decoration-current"
+                    href={t.uri}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    metadata.json
+                  </a>
+                ) : null}
               </div>
             ))
           )}
