@@ -1,4 +1,7 @@
+'use client';
+
 import Link from "next/link";
+import WalletButton from "@/components/WalletButton";
 
 export default function Nav() {
   return (
@@ -24,11 +27,18 @@ export default function Nav() {
             Explore
           </Link>
           <Link
+            href="/profile"
+            className="rounded-xl px-3 py-2 text-sm text-[color:var(--muted)] hover:text-[color:var(--text)] hover:bg-[color:var(--surface)]"
+          >
+            Profile
+          </Link>
+          <Link
             href="/create"
             className="rounded-xl px-3 py-2 text-sm font-semibold text-[color:var(--bg)] bg-[color:var(--lime)] hover:brightness-110"
           >
             Launch Token
           </Link>
+          <WalletButton />
         </nav>
       </div>
     </header>
