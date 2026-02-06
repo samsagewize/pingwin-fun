@@ -28,7 +28,7 @@ export default function Home() {
   return (
     <main className="mx-auto max-w-6xl px-4">
       <section className="relative mt-10 overflow-hidden rounded-3xl border border-[color:var(--border)] bg-[color:var(--surface)] px-6 py-14 glow">
-        <div className="absolute inset-0 opacity-40" />
+        <div className="absolute inset-0 hero-glow opacity-90" />
         <div className="relative">
           <div className="inline-flex items-center gap-2 rounded-full border border-[color:var(--border)] bg-[color:var(--bg)]/40 px-4 py-2 text-xs text-[color:var(--muted)]">
             <span className="h-2 w-2 rounded-full bg-[color:var(--lime)]" />

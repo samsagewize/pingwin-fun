@@ -6,19 +6,20 @@
 */
 
 :root {
-  /* Core palette */
-  --bg: #070a12; /* deep navy/black */
-  --surface: #0c1220;
-  --surface-2: #101a2d;
-  --text: #eaf0ff;
-  --muted: #93a4b8;
+  /* Core palette (punchier) */
+  --bg: #050611; /* deeper */
+  --surface: #0b1024;
+  --surface-2: #0f1733;
+  --text: #eef2ff;
+  --muted: #9aa9c2;
 
   --cyan: #22d3ee;
   --lime: #b6ff3b;
   --pink: #ff2bd6;
+  --violet: #8b5cf6;
   --red: #ef4444;
 
-  --border: rgba(255, 255, 255, 0.08);
+  --border: rgba(255, 255, 255, 0.09);
 }
 
 @theme inline {
@@ -34,6 +35,7 @@
   --color-cyan: var(--cyan);
   --color-lime: var(--lime);
   --color-pink: var(--pink);
+  --color-violet: var(--violet);
   --color-danger: var(--red);
 
   --color-border: var(--border);
@@ -45,7 +47,10 @@ body {
 }
 
 body {
-  background: var(--bg);
+  background: radial-gradient(1200px 800px at 20% 10%, rgba(139, 92, 246, 0.12), transparent 60%),
+    radial-gradient(900px 600px at 85% 15%, rgba(34, 211, 238, 0.10), transparent 55%),
+    radial-gradient(900px 700px at 60% 90%, rgba(255, 43, 214, 0.08), transparent 60%),
+    var(--bg);
   color: var(--text);
 }
 
@@ -53,6 +58,13 @@ body {
 .glow {
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.06),
-    0 0 40px rgba(34, 211, 238, 0.08),
-    0 0 80px rgba(255, 43, 214, 0.06);
+    0 0 40px rgba(34, 211, 238, 0.12),
+    0 0 120px rgba(255, 43, 214, 0.08);
+}
+
+.hero-glow {
+  background:
+    radial-gradient(600px 300px at 15% 15%, rgba(182, 255, 59, 0.22), transparent 55%),
+    radial-gradient(700px 360px at 90% 20%, rgba(34, 211, 238, 0.20), transparent 55%),
+    radial-gradient(650px 360px at 55% 95%, rgba(255, 43, 214, 0.18), transparent 60%);
 }
